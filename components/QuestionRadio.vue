@@ -1,12 +1,7 @@
 <template>
-   <div>
-      <p>{{ question.question }}<span v-if="question.required">*</span></p>
-      <div v-for="(option, index) in question.options" :key="index" class="radio-option">
-         <input type="radio" :id="'question-' + question.id + '-' + index" :name="'question-' + question.id"
-            :value="option" :checked="modelValue === option" @change="$emit('update:modelValue', option)" />
-         <label :for="'question-' + question.id + '-' + index">{{ option }}</label>
-      </div>
-   </div>
+   <UFormGroup :label="question.question" :required="question.required" :error="error">
+      <URadioGroup v-model="modelValue" :options="question.options" />
+   </UFormGroup>
 </template>
 
 <script setup>
@@ -18,21 +13,12 @@ defineProps({
    modelValue: {
       type: [String, Number],
       default: ''
+   },
+   error: {
+      type: String,
+      default: ''
    }
 });
 
 defineEmits(['update:modelValue']);
 </script>
-
-<style>
-.radio-option {
-   margin-bottom: 8px;
-   display: flex;
-   align-items: center;
-}
-
-.radio-option input {
-   width: auto;
-   margin-right: 8px;
-}
-</style>

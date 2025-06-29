@@ -1,9 +1,14 @@
 <template>
-   <form @submit.prevent="submitForm">
-      <div v-for="question in questions" :key="question.id" class="question">
+   <form @submit.prevent="submitForm" class="space-y-6">
+      <div v-for="question in questions" :key="question.id">
          <component :is="getQuestionComponent(question.type)" :question="question" v-model="formData[question.id]" />
       </div>
-      <button type="submit" class="submit-btn">Отправить</button>
+
+      <div class="flex justify-end">
+         <UButton type="submit" color="primary">
+            Отправить
+         </UButton>
+      </div>
    </form>
 </template>
 
@@ -11,6 +16,7 @@
 import QuestionText from './QuestionText.vue';
 import QuestionRadio from './QuestionRadio.vue';
 import QuestionCheckbox from './QuestionCheckbox.vue';
+import QuestionSelect from './QuestionSelect.vue';
 
 const props = defineProps({
    questions: {
@@ -22,49 +28,35 @@ const props = defineProps({
 const emit = defineEmits(['submit']);
 
 const formData = ref({});
+const toast = useToast();
 
 const getQuestionComponent = (type) => {
-   switch (type) {
-      case 'text':
-      case 'textarea':
-         return QuestionText;
-      case 'radio':
-         return QuestionRadio;
-      case 'checkbox':
-         return QuestionCheckbox;
-      default:
-         return QuestionText;
-   }
+   const components = {
+      text: QuestionText,
+      textarea: QuestionText,
+      radio: QuestionRadio,
+      checkbox: QuestionCheckbox,
+      select: QuestionSelect
+   };
+   return components[type] || QuestionText;
 };
 
 const submitForm = () => {
    // Проверка обязательных вопросов
-   for (const question of props.questions) {
-      if (question.required && !formData.value[question.id]) {
-         alert(`Пожалуйста, ответьте на вопрос: "${question.question}"`);
-         return;
-      }
+   const unansweredRequired = props.questions.filter(
+      q => q.required && !formData.value[q.id]
+   );
+
+   if (unansweredRequired.length > 0) {
+      toast.add({
+         title: 'Не все вопросы заполнены',
+         description: `Пожалуйста, ответьте на вопрос: "${unansweredRequired[0].question}"`,
+         icon: 'i-heroicons-exclamation-circle',
+         color: 'amber'
+      });
+      return;
    }
 
    emit('submit', formData.value);
 };
 </script>
-
-<style>
-.question {
-   margin-bottom: 20px;
-}
-
-.submit-btn {
-   padding: 10px 20px;
-   background-color: #4CAF50;
-   color: white;
-   border: none;
-   border-radius: 4px;
-   cursor: pointer;
-}
-
-.submit-btn:hover {
-   background-color: #45a049;
-}
-</style>
