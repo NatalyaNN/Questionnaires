@@ -1,7 +1,8 @@
 <template>
-   <UFormGroup :label="question.question" :required="question.required" :error="error">
-      <URadioGroup v-model="modelValue" :options="question.options" />
-   </UFormGroup>
+   <UFormField :label="question.question" :required="question.required" :error="error">
+      <URadioGroup :value="modelValue" @update:modelValue="$emit('update:modelValue', $event)"
+         :options="question.options" />
+   </UFormField>
 </template>
 
 <script setup>

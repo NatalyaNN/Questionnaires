@@ -1,7 +1,8 @@
 <template>
    <form @submit.prevent="submitForm" class="space-y-6">
       <div v-for="question in questions" :key="question.id">
-         <component :is="getQuestionComponent(question.type)" :question="question" v-model="formData[question.id]" />
+         <component :is="getQuestionComponent(question.type)" :question="question" :model-value="formData[question.id]"
+            @update:modelValue="formData[question.id] = $event" :error="errors[question.id]" />
       </div>
 
       <div class="flex justify-end">
@@ -28,6 +29,7 @@ const props = defineProps({
 const emit = defineEmits(['submit']);
 
 const formData = ref({});
+const errors = ref({});
 const toast = useToast();
 
 const getQuestionComponent = (type) => {
@@ -42,15 +44,21 @@ const getQuestionComponent = (type) => {
 };
 
 const submitForm = () => {
+   errors.value = {};
+
    // Проверка обязательных вопросов
    const unansweredRequired = props.questions.filter(
       q => q.required && !formData.value[q.id]
    );
 
    if (unansweredRequired.length > 0) {
+      unansweredRequired.forEach(q => {
+         errors.value[q.id] = 'Это обязательный вопрос';
+      });
+
       toast.add({
          title: 'Не все вопросы заполнены',
-         description: `Пожалуйста, ответьте на вопрос: "${unansweredRequired[0].question}"`,
+         description: `Пожалуйста, ответьте на все обязательные вопросы`,
          icon: 'i-heroicons-exclamation-circle',
          color: 'amber'
       });
