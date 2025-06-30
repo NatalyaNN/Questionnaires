@@ -1,49 +1,62 @@
 <template>
-   <UForm @submit="handleSubmit">
+   <UForm :schema="schema" :state="state" @submit="handleSubmit">
       <UFormField label="Email" name="email">
-         <UInput v-model="email" type="email" />
+         <UInput v-model="state.email" type="email" />
       </UFormField>
 
       <UFormField label="Пароль" name="password">
-         <UInput v-model="password" type="password" />
+         <UInput v-model="state.password" type="password" />
       </UFormField>
 
       <UButton type="submit" block>
          Войти
       </UButton>
-   </UForm>
+      </UForm>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { UFormField } from '#components';
+import * as z from 'zod'
+import type { FormSubmitEvent } from '@nuxt/ui'
 
-const email = ref('');
-const password = ref('');
+const toast = useToast();
 
-const handleSubmit = async () => {
+const schema = z.object({
+   email: z.string().email('Invalid email'),
+   password: z.string().min(8, 'Must be at least 8 characters')
+})
+
+type Schema = z.output<typeof schema>
+
+const state = reactive < Partial < Schema >> ({
+   email: undefined,
+   password: undefined
+})
+
+const handleSubmit = async (event: FormSubmitEvent<Schema>) => {
    try {
       const { data } = await useFetch('/api/auth/login', {
          method: 'POST',
-         body: { email: email.value, password: password.value }
+         body: { email: state.email, password: state.password }
       });
 
       useToast().add({
          title: 'Успешный вход',
-         color: 'green'
+         color: 'success'
       });
 
       // Обновляем состояние аутентификации
       const auth = useAuth();
       auth.value.isAuthenticated = true;
-      auth.value.user = data.value.user;
+      auth.value.user = data.value!.user;
 
       // Перенаправляем на главную
       await navigateTo('/');
-   } catch (error) {
+   } catch (error: any) {
       useToast().add({
          title: 'Ошибка входа',
          description: error.data?.message || 'Неверные учетные данные',
-         color: 'red'
+         color: 'warning'
       });
    }
 };

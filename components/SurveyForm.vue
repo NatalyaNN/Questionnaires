@@ -1,5 +1,5 @@
 <template>
-   <form @submit.prevent="submitForm" class="space-y-6">
+   <UForm :schema="schema" :state="state" @submit.prevent="submitForm" class="space-y-6">
       <div v-for="question in questions" :key="question.id">
          <component :is="getQuestionComponent(question.type)" :question="question" :model-value="formData[question.id]"
             @update:modelValue="formData[question.id] = $event" :error="errors[question.id]" />
@@ -10,7 +10,7 @@
             Отправить
          </UButton>
       </div>
-   </form>
+   </UForm>
 </template>
 
 <script setup>

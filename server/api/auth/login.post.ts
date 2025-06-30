@@ -1,7 +1,5 @@
 import { compare } from 'bcrypt';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '~/server/utils/prisma';
 
 export default defineEventHandler(async (event) => {
    const { email, password } = await readBody(event);
@@ -14,7 +12,7 @@ export default defineEventHandler(async (event) => {
       if (!user) {
          throw createError({
             statusCode: 401,
-            statusMessage: 'Invalid credentials'
+            message: 'Invalid credentials'
          });
       }
 
@@ -24,7 +22,7 @@ export default defineEventHandler(async (event) => {
       if (!isPasswordValid) {
          throw createError({
             statusCode: 401,
-            statusMessage: 'Invalid credentials'
+            message: 'Invalid credentials'
          });
       }
 
@@ -33,7 +31,7 @@ export default defineEventHandler(async (event) => {
          maxAge: 60 * 60 * 24 * 7 // 1 неделя
       });
       /*
-      setCookie(event, 'auth-token', 'your-jwt-token', { 
+      setCookie(event, 'auth-token', 'generateJWT(user)', { 
          httpOnly: true,
          maxAge: 60 * 60 * 24 * 7
       });
