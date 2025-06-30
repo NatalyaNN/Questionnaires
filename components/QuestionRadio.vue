@@ -1,7 +1,7 @@
 <template>
    <UFormField :label="question.question" :required="question.required" :error="error">
       <URadioGroup :value="modelValue" @update:modelValue="$emit('update:modelValue', $event)"
-         :options="question.options" />
+         :items="question.options.map(opt => ({ value: opt, label: opt }))" />
    </UFormField>
 </template>
 

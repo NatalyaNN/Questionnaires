@@ -7,7 +7,7 @@
     <USelect
       :value="modelValue"
       @update:modelValue="$emit('update:modelValue', $event)"
-      :options="question.options"
+      :items="question.options"
       :placeholder="question.placeholder || 'Выберите вариант'"
     />
   </UFormField>

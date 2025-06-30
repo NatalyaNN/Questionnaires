@@ -12,6 +12,7 @@ export default defineNuxtConfig({
     }
   },
   modules: ['@nuxt/ui'],
+  // plugins: ['~/plugins/devalue.ts'],
   // ui: {
   //   // Дополнительные настройки Nuxt UI (опционально)
   // },

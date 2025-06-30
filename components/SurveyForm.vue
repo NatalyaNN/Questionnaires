@@ -22,7 +22,15 @@ import QuestionSelect from './QuestionSelect.vue';
 const props = defineProps({
    questions: {
       type: Array,
-      required: true
+      required: true,
+      validator: (questions) => {
+         try {
+            JSON.stringify(questions);
+            return true;
+         } catch {
+            return false;
+         }
+      }
    }
 });
 

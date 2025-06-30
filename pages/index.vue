@@ -5,7 +5,7 @@
             <h1 class="text-2xl font-bold text-center">Анкета</h1>
          </template>
 
-         <SurveyForm :questions="questions" @submit="handleSubmit" />
+         <SurveyForm :questions="serializedQuestions" @submit="handleSubmit" />
 
          <template #footer>
             <div class="text-center text-gray-500 text-sm">
@@ -15,6 +15,7 @@
       </UCard>
    </UContainer>
 </template>
+ 
 
 <script setup>
 const questions = [
@@ -55,11 +56,13 @@ const questions = [
    }
 ];
 
+const serializedQuestions = JSON.parse(JSON.stringify(questions));
+
 const handleSubmit = async (answers) => {
    try {
       const { data } = await useFetch('/api/submit', {
          method: 'POST',
-         body: { answers }
+         body: { answers: JSON.parse(JSON.stringify(answers)) }
       });
 
       useToast().add({
@@ -75,7 +78,7 @@ const handleSubmit = async (answers) => {
          icon: 'i-heroicons-exclamation-circle',
          color: 'red'
       });
-      console.error('Ошибка при отправке:', error);
+      console.error('Ошибка при отправке:', error.description);
    }
 };
 </script>

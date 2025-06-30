@@ -8,11 +8,20 @@
    </UFormField>
 </template>
 
-<script setup>
+<script setup lang="ts">
 const props = defineProps({
    question: {
       type: Object,
-      required: true
+      required: true,
+      validator: (q) => {
+         // Проверяем, что вопрос сериализуем
+         try {
+            JSON.stringify(q);
+            return true;
+         } catch {
+            return false;
+         }
+      }
    },
    modelValue: {
       type: Array,
@@ -26,7 +35,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue']);
 
-const handleCheckboxChange = (checked, option) => {
+const handleCheckboxChange = (checked: boolean, option: string) => {
    let newValue = [...props.modelValue];
    if (checked) {
       if (!newValue.includes(option)) {
