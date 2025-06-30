@@ -32,6 +32,12 @@ export default defineEventHandler(async (event) => {
          httpOnly: true,
          maxAge: 60 * 60 * 24 * 7 // 1 неделя
       });
+      /*
+      setCookie(event, 'auth-token', 'your-jwt-token', { 
+         httpOnly: true,
+         maxAge: 60 * 60 * 24 * 7
+      });
+      */
 
       return {
          success: true,

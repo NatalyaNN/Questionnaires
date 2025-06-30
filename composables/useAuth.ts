@@ -1,5 +1,5 @@
 export const useAuth = () => {
-   return useState('auth', () => ({
+   return useState<AuthState>('auth', () => ({
       isAuthenticated: false,
       user: null
    }));
