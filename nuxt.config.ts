@@ -11,6 +11,10 @@ export default defineNuxtConfig({
       ]
     }
   },
+  routeRules: {
+    '/admin/**': { ssr: false },  // Админка только на клиенте
+    '/profile': { prerender: false }
+  },
   modules: ['@nuxt/ui'],
   // plugins: ['~/plugins/devalue.ts'],
   // ui: {

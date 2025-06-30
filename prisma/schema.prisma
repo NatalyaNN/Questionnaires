@@ -8,8 +8,42 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model SurveyResponse {
+model User {
+  id          Int       @id @default(autoincrement())
+  email       String    @unique
+  password    String
+  name        String?
+  role        Role      @default(USER)
+  responses   Response[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  Survey Survey[]
+}
+
+model Survey {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String?
+  questions   Json      // [{ type: "radio", text: "Вопрос", options: [...] }]
+  isActive    Boolean   @default(true)
+  creator     User      @relation(fields: [creatorId], references: [id])
+  creatorId   Int
+  responses   Response[]
+  createdAt   DateTime  @default(now())
+}
+
+model Response {
   id        Int      @id @default(autoincrement())
+  survey    Survey   @relation(fields: [surveyId], references: [id])
+  surveyId  Int
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    Int?
+  answers   Json     // { "1": "Ответ", "2": ["Вариант 1", "Вариант 2"] }
   createdAt DateTime @default(now())
-  answers   Json
+}
+
+enum Role {
+  USER
+  ADMIN
 }
