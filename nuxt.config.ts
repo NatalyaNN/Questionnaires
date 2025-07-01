@@ -15,6 +15,9 @@ export default defineNuxtConfig({
     '/admin/**': { ssr: false },  // Админка только на клиенте
     '/profile': { prerender: false }
   },
+  build: {
+    transpile: ['zod']
+  },
   modules: ['@nuxt/ui'],
   // plugins: ['~/plugins/devalue.ts'],
   // ui: {

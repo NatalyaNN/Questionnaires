@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
       if (!user) {
          throw createError({
             statusCode: 401,
-            message: 'Invalid credentials'
+            message: 'Пользователь не существует'
          });
       }
 
@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
       if (!isPasswordValid) {
          throw createError({
             statusCode: 401,
-            message: 'Invalid credentials'
+            message: 'Неверный пароль'
          });
       }
 

@@ -2,18 +2,48 @@ import { hash } from 'bcrypt';
 import { prisma } from '~/server/utils/prisma';
 
 export default defineEventHandler(async (event) => {
-   const { email, password, name } = await readBody(event);
+   const body = await readBody(event);
 
-   const hashedPassword = await hash(password, 10);
+   // Проверка существования пользователя
+   const exists = await prisma.user.findUnique({
+      where: { email: body.email }
+   });
 
+   if (exists) {
+      throw createError({
+         statusCode: 400,
+         message: 'Пользователь с таким email уже существует'
+      });
+   }
+
+   // Хеширование пароля
+   const hashedPassword = await hash(body.password, 10);
+
+   // Создание пользователя
    const user = await prisma.user.create({
       data: {
-         email,
+         name: body.name,
+         email: body.email,
          password: hashedPassword,
-         name,
          role: 'USER'
+      },
+      select: {
+         id: true,
+         email: true,
+         name: true,
+         role: true
       }
    });
 
-   return { id: user.id, email: user.email };
+   // Создание профиля
+   await prisma.user.create({
+      data: {
+         id: user.id,
+         name: user.name,
+         email: user.email,
+         password: hashedPassword
+      }
+   });
+
+   return user;
 });

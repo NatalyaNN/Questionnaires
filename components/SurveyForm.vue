@@ -1,78 +1,84 @@
 <template>
-   <UForm :schema="schema" :state="state" @submit.prevent="submitForm" class="space-y-6">
-      <div v-for="question in questions" :key="question.id">
-         <component :is="getQuestionComponent(question.type)" :question="question" :model-value="formData[question.id]"
-            @update:modelValue="formData[question.id] = $event" :error="errors[question.id]" />
-      </div>
-
-      <div class="flex justify-end">
-         <UButton type="submit" color="primary">
-            Отправить
-         </UButton>
-      </div>
+   <UForm :schema="schema" :state="state" @submit="submit">
+     <UFormField label="Название анкеты" name="title" required>
+       <UInput v-model="state.title" />
+       <UFormError name="title" />
+     </UFormField>
+ 
+     <UFormField label="Описание" name="description" class="mt-4">
+       <UTextarea v-model="state.description" />
+     </UFormField>
+ 
+     <div v-for="(question, index) in state.questions" :key="index" class="mt-6 border p-4 rounded-lg">
+       <UFormField :label="`Вопрос ${index + 1}`" :name="`question-${index}`">
+         <QuestionEditor v-model="state.questions[index]" @remove="removeQuestion(index)" />
+       </UFormField>
+     </div>
+ 
+     <UButton type="button" @click="addQuestion" variant="outline" class="mt-4">
+       Добавить вопрос
+     </UButton>
+ 
+     <div class="flex gap-3 mt-6">
+       <UButton type="submit">
+         {{ surveyId ? 'Обновить' : 'Создать' }}
+       </UButton>
+       <UButton type="button" variant="outline" @click="$emit('cancel')">
+         Отмена
+       </UButton>
+     </div>
    </UForm>
-</template>
+ </template>
 
-<script setup>
-import QuestionText from './QuestionText.vue';
-import QuestionRadio from './QuestionRadio.vue';
-import QuestionCheckbox from './QuestionCheckbox.vue';
-import QuestionSelect from './QuestionSelect.vue';
+<script setup lang="ts">
+import { UFormField } from '#components';
+import * as z from 'zod'
+import type { FormSubmitEvent } from '@nuxt/ui'
 
 const props = defineProps({
-   questions: {
-      type: Array,
-      required: true,
-      validator: (questions) => {
-         try {
-            JSON.stringify(questions);
-            return true;
-         } catch {
-            return false;
-         }
-      }
-   }
+  surveyId: { type: Number, default: null }
 });
 
-const emit = defineEmits(['submit']);
+const emit = defineEmits(['submit', 'cancel']);
 
-const formData = ref({});
-const errors = ref({});
-const toast = useToast();
+// Валидация
+const questionSchema = z.object({
+  text: z.string().min(1, 'Введите текст вопроса'),
+  type: z.enum(['text', 'radio', 'checkbox']),
+  options: z.array(z.string()).optional(),
+  required: z.boolean()
+});
 
-const getQuestionComponent = (type) => {
-   const components = {
-      text: QuestionText,
-      textarea: QuestionText,
-      radio: QuestionRadio,
-      checkbox: QuestionCheckbox,
-      select: QuestionSelect
-   };
-   return components[type] || QuestionText;
+const schema = z.object({
+  title: z.string().min(1, 'Введите название'),
+  questions: z.array(questionSchema).min(1, 'Добавьте вопросы')
+});
+
+// Состояние формы
+const state = reactive({
+  title: '',
+  description: '',
+  questions: [
+    { type: 'text', text: '', required: true }
+  ]
+});
+
+// Загрузка данных при редактировании
+if (props.surveyId) {
+  const { data } = await useFetch(`/api/surveys/${props.surveyId}`);
+  Object.assign(state, data.value);
+}
+
+// Методы
+const addQuestion = () => {
+  state.questions.push({ type: 'text', text: '', required: true });
 };
 
-const submitForm = () => {
-   errors.value = {};
+const removeQuestion = (index: number) => {
+  state.questions.splice(index, 1);
+};
 
-   // Проверка обязательных вопросов
-   const unansweredRequired = props.questions.filter(
-      q => q.required && !formData.value[q.id]
-   );
-
-   if (unansweredRequired.length > 0) {
-      unansweredRequired.forEach(q => {
-         errors.value[q.id] = 'Это обязательный вопрос';
-      });
-
-      toast.add({
-         title: 'Не все вопросы заполнены',
-         description: `Пожалуйста, ответьте на все обязательные вопросы`,
-         icon: 'i-heroicons-exclamation-circle',
-         color: 'amber'
-      });
-      return;
-   }
-
-   emit('submit', formData.value);
+const submit = async () => {
+  emit('submit', { ...state });
 };
 </script>
