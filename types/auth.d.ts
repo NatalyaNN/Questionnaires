@@ -7,5 +7,10 @@ declare interface AuthUser {
 
 declare interface AuthState {
    isAuthenticated: boolean;
-   user: AuthUser | null;
+   user: {
+      id: number;
+      email: string;
+      name: string | null;
+      role: 'USER' | 'ADMIN';
+   } | null;
  }

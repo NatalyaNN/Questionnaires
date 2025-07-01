@@ -55,9 +55,9 @@
  <script setup lang="ts">
  import { z } from 'zod';
  
- const { signIn } = useAuth();
- const pending = ref(false);
- const toast = useToast();
+let auth = useAuth();
+const pending = ref(false);
+const toast = useToast();
  
  // Схема валидации
  const schema = z.object({
@@ -85,36 +85,49 @@
  });
  
  // Обработка отправки
- const handleSubmit = async () => {
+const handleSubmit = async () => {
    pending.value = true;
    try {
-     await $fetch('/api/auth/register', {
-       method: 'POST',
-       body: state
-     });
- 
-     // Автоматический вход после регистрации
-     await signIn({
-       email: state.email,
-       password: state.password
-     });
- 
-     toast.add({
-       title: 'Регистрация успешна!',
-       icon: 'i-heroicons-check-circle',
-       color: 'success'
-     });
- 
-     await navigateTo('/profile');
+      // 1. Регистрация
+      await $fetch('/api/auth/register', {
+         method: 'POST',
+         body: {
+            name: state.name,
+            email: state.email,
+            password: state.password
+         }
+      });
+
+      // 2. Автоматический вход
+      const user = await $fetch('/api/auth/login', {
+         method: 'POST',
+         body: {
+            email: state.email,
+            password: state.password
+         }
+      });
+
+      auth = {
+         isAuthenticated: true,
+         user
+      };
+
+      toast.add({
+         title: 'Регистрация успешна!',
+         icon: 'i-heroicons-check-circle',
+         color: 'success'
+      });
+
+      await navigateTo('/profile');
    } catch (error: any) {
-     toast.add({
-       title: 'Ошибка регистрации',
-       description: error.data?.message || 'Попробуйте позже',
-       icon: 'i-heroicons-exclamation-circle',
-       color: 'warning'
-     });
+      toast.add({
+         title: 'Ошибка регистрации',
+         description: error.data?.message || error.message,
+         icon: 'i-heroicons-exclamation-circle',
+         color: 'warning'
+      });
    } finally {
-     pending.value = false;
+      pending.value = false;
    }
- };
+};
  </script>
